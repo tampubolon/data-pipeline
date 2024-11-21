@@ -9,7 +9,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket  = "terraform-martinus"
+    bucket  = "terraform-martin"
     key     = "data-pipeline/s3/test-bucket.tfstate"
     region  = "ap-southeast-1"
     encrypt = true
