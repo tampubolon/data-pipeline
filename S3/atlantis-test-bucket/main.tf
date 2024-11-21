@@ -3,10 +3,10 @@ resource "aws_s3_bucket" "test" {
 
   tags = {
     name        = "atlantis-test-bucket"
-    environment = "dev"
+    environment = "development"
     Owner       = "team-infrastructure"
     ManagedBy   = "terraform"
-    TFProject   = "github.com/tampubolon/s3/test-bucket"
+    TFProject   = "github.com/tampubolon/data-pipeline/s3/test-bucket"
     Attributes  = "s3-bucket"
   }
 }
