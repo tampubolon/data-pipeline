@@ -1,8 +1,8 @@
 resource "aws_s3_bucket" "test" {
-  bucket = "atlantis-test-s3"
+  bucket = "atlantis-test-s3-martinus-123"
 
   tags = {
-    name        = "atlantis-test-s3"
+    name        = "atlantis-test-s3-martinus-123"
     environment = "development"
     Owner       = "team-infrastructure"
     ManagedBy   = "terraform"
