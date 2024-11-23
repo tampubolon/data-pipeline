@@ -260,7 +260,7 @@ For cost optimization, I propose several strategy:
 ---
 
 ### 5. **Sample IaC Project**
-I have created a sample Infrastructure-as-Code (IaC) project to demonstrate my ability to meet the infrastructure requirements. I also setup [Atlantis](https://www.runatlantis.io/) to show terraform plan and terraform apply result on the PR. PR example: https://github.com/tampubolon/data-pipeline/pull/3
+I have created a sample Infrastructure-as-Code (IaC) project to demonstrate my ability to provision Infrastructure with IaC. I also setup [Atlantis](https://www.runatlantis.io/) to show `terraform plan` and `terraform apply` result on the PR. PR example: [PR-3](https://github.com/tampubolon/data-pipeline/pull/3) & [PR-9](https://github.com/tampubolon/data-pipeline/pull/9).
 - **Repository URL:** [https://github.com/tampubolon/data-pipeline](https://github.com/tampubolon/data-pipeline)
 
 ---
