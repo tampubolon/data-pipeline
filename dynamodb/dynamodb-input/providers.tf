@@ -10,7 +10,7 @@ terraform {
 
   backend "s3" {
     bucket  = "terraform-martin"
-    key     = "data-pipeline/s3/test-bucket.tfstate"
+    key     = "data-pipeline/dynamodb/dynamodb-input.tfstate"
     region  = "ap-southeast-1"
     encrypt = true
   }
