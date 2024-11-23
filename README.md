@@ -10,68 +10,68 @@ My architecture can be also see here:
 
 ## Data Pipeline Architecture Workflow
 
-1. **File Upload**  
-   - Human users or machines upload media files to the S3 bucket `S3_INPUT`.
+1. Human users or machines upload media files to the S3 bucket `S3_INPUT`.
 
-2. **Event Generation**  
-   - Once a file upload is complete, an event is triggered.
+2.  Once a file upload is complete, an event is triggered.
 
-3. **Event Processing**  
+3. Event Processing
    - EventBridge routes the event to the Lambda function `LAMBDA_CLASSIFY`.
    - `LAMBDA_CLASSIFY` determines the file type (e.g., document, 3D file, image, or video) and processes the event data to:
      - Forward the event to the appropriate SQS queue.
      - Generate metadata for the uploaded file.
 
-4. **Queue and Metadata Handling**  
-   - **Step 4.A**:  
+4. Queue and Metadata Handling
+   - Step 4.A:  
      `LAMBDA_CLASSIFY` forwards the event data to the relevant SQS queue:  
        - Document files → `SQS_DOCUMENT`  
        - Image files → `SQS_PICTURE`  
        - 3D files → `SQS_3D_FILE`  
        - Video files → `SQS_VIDEO`
-   - **Step 4.B**:  
+   - Step 4.B:  
      Metadata for the uploaded file is sent to DynamoDB `DYNAMODB_INPUT`. This step runs in parallel with 4.A.
 
-5. **Job Queue Processing**  
+5. Job Queue Processing  
    - Files in the SQS queues are processed based on their `processingOption`, which defines the required actions for the uploaded file.  
      Examples:  
      - Document files → Classification, Text Extraction, Semantic Analysis  
      - 3D files → Simulation, Rendering, Render Optimization  
-     - Image and Video files → Specific processing steps  
+     - Image → Image recognition, Resize, Convert Format
+     - Video files → Transcode / Encode, Extract Key Frame, Caption Generation
    - The `processingOption` is an input provided by the user during file upload (Step 1).
-   - `LAMBDA_CLASSIFY` forwards this information to the appropriate processing stack along with the S3 file path (`S3_INPUT`).
+   - `LAMBDA_CLASSIFY` forwards this information to the appropriate processing stack along with the S3 file path (`S3_INPUT`). Procesing stack use the S3 file path to download the input file.
 
-6. **File Processing**  
+6. File Processing  
    - The processing stack downloads files from `S3_INPUT` and processes them using AWS services such as:  
      - **Amazon Textract** → Text Extraction  
      - **Amazon Rekognition** → Image Recognition  
      - **Elemental MediaConvert** → Video Transcoding  
      - **Lambda Functions** → Custom processing tasks (e.g., extracting key frames from videos)
+     - **AWS Batch & EKS Cluster** → For high usage and intensive process and custom use case, AWS batch for orchestrate the batch and EKS cluster for running the workload.
 
-7. **Output Handling**  
-   - **Step 7.A**:  
+7. Output Handling  
+   - Step 7.A:  
      Processed files are uploaded to the S3 bucket `S3_OUTPUT`.  
-   - **Step 7.B**:  
+   - Step 7.B:  
      The processing stack sends process-related information (e.g., `processDuration`) to the SNS topic `SNS_NOTIF`. This step runs in parallel with 7.A.
 
-8. **Output Metadata Generation**  
-   - **Step 8.A**:  
-     A file upload to `S3_OUTPUT` triggers the Lambda function `LAMBDA_OUTPUT`, which generates metadata for the processed file.  
-   - **Step 8.B**:  
+8. Output Metadata Generation  
+   - Step 8.A:  
+     When processed file uploaded to `S3_OUTPUT`, and event generated and triggers the Lambda function `LAMBDA_OUTPUT`, which generates metadata for the processed file.  
+   - Step 8.B:  
      `SNS_NOTIF` sends `processDuration` data to `LAMBDA_OUTPUT` to enrich the metadata.
 
-9. **File Distribution**  
-   - **Step 9.A**:  
+9. File Distribution  
+   - Step 9.A:  
      Files in `S3_OUTPUT` are copied to Amazon CloudFront (CDN) for global access.  
-   - **Step 9.B**:  
+   - Step 9.B:  
      Metadata is sent to `DYNAMODB_OUTPUT`.
 
-10. **User Access**  
-    - **Step 10.A**:  
+10. User Access  
+    - Step 10.A:  
       Users can access processed files via CloudFront.  
-    - **Step 10.B**:  
+    - Step 10.B:  
       Files can also be downloaded directly from `S3_OUTPUT`.  
-    - **Step 10.C**:  
+    - Step 10.C:  
       Processed file metadata can be accessed from `DYNAMODB_OUTPUT`.
 
 ---
@@ -80,15 +80,62 @@ My architecture can be also see here:
 
 - **S3**: File storage (`S3_INPUT` and `S3_OUTPUT`)
 - **EventBridge**: Event routing
-- **Lambda**: File classification, metadata generation, and task orchestration
+- **Lambda**: File classification, metadata generation, task orchestration and file processing.
 - **SQS**: Job queueing
 - **DynamoDB**: Metadata storage (`DYNAMODB_INPUT` and `DYNAMODB_OUTPUT`)
 - **SNS**: Notifications
 - **CloudFront**: File distribution (CDN)
 - **Textract, Rekognition, MediaConvert**: Specialized file processing
+- **AWS Batch & EKS Cluster**: Batch processing with Kubernetes running the workload.
 
 ---
 
 ## How It Works
 
 This pipeline ensures efficient handling of diverse file types, leveraging AWS's scalability and specialized tools for processing and storage. Users can seamlessly upload files, define processing requirements, and access results via CDN, direct download, or metadata queries.
+
+
+## Questions and Answers:
+
+
+This document outlines my approach and solutions for designing and implementing scalable, reliable, and maintenance-less infrastructure for a data processing system handling **5TB/day of various file types**.
+
+---
+
+### 1. **What architecture is suitable for the requirement? How can it be scalable, reliable, and maintenance-less?**
+
+*Answer: [Provide your answer here]*
+
+---
+
+### 2. **What monitoring strategies would you implement to ensure proactive system stabilization and effective auto-scaling?**
+
+*Answer: [Provide your answer here]*
+
+---
+
+### 3. **What are the potential bottlenecks that might occur in the below architecture? How would you go about diagnosing and resolving these issues?**
+
+*Answer: [Provide your answer here]*
+
+---
+
+### 4. **There is a big infrastructure; what’s the optimized cost plan?**
+
+*Answer: [Provide your answer here]*
+
+---
+
+### 5. **Sample IaC Project**
+
+I have created a sample Infrastructure-as-Code (IaC) project to demonstrate my ability to meet the infrastructure requirements. The repository includes essential configurations and code snippets, focusing on scalability, reliability, and maintainability.
+
+#### **Repository Details:**
+- **Repository URL:** [Private GitHub repository link]
+- **Invited Collaborators:** `@yota345` and `@tanvlt`
+
+Please note that the project demonstrates core concepts and skills rather than a complete implementation. The total time spent does not exceed two hours.
+
+---
+
+Thank you for reviewing my work. Please feel free to reach out for any further clarifications or questions.
