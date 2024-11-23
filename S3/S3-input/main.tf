@@ -11,11 +11,6 @@ resource "aws_s3_bucket" "input_bucket" {
   }
 }
 
-resource "aws_s3_bucket_acl" "input_bucket_acl" {
-  bucket = aws_s3_bucket.input_bucket.id
-  acl    = "private"
-}
-
 resource "aws_s3_bucket_public_access_block" "input_bucket_block" {
   bucket = aws_s3_bucket.input_bucket.id
 
@@ -50,23 +45,19 @@ resource "aws_s3_bucket_lifecycle_configuration" "input_bucket_lifecycle" {
 resource "aws_s3_object" "document_folder" {
   bucket = aws_s3_bucket.input_bucket.id
   key    = "documents/"
-  acl    = "private"
 }
 
 resource "aws_s3_object" "picture_folder" {
   bucket = aws_s3_bucket.input_bucket.id
   key    = "pictures/"
-  acl    = "private"
 }
 
 resource "aws_s3_object" "video_folder" {
   bucket = aws_s3_bucket.input_bucket.id
   key    = "videos/"
-  acl    = "private"
 }
 
 resource "aws_s3_object" "file_3d_folder" {
   bucket = aws_s3_bucket.input_bucket.id
   key    = "3d-files/"
-  acl    = "private"
 }
