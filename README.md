@@ -100,39 +100,38 @@ This document outlines my approach and solutions for designing and implementing 
 
 ### 1. **What architecture is suitable for the requirement? How can it be scalable, reliable, and maintenance-less?**
 
-*Answer: [
-    **Architecture Overview:**
+*Answer:
+**Architecture Overview:**
 I propsed an architecture with a serverless, event-driven, and highly scalable data pipeline. designed to handle 5TB of daily incoming data. Let we separates the data ingestion, classification, processing, and export stages. 
-Decouple the classification stage and processing stage with Amazon queue service (SQS), to manage high amount of incoming data. The architecture leverages as much as possible AWS managed services to minimize operational overhead.
+Decouple the classification stage and processing stage with Amazon queue service (SQS), to manage high amount of incoming data by buffering incoming data and avoid overloading the system. The architecture leverages as much as possible AWS managed services to minimize operational overhead.
 
-*Key Features of the Architecture:*
-A. Data Ingestion and Event Triggering:
+**Key Features of the Architecture:**
 
+**A. Data Ingestion and Event Triggering:**
 Incoming data (images, media files, 3D files, and PDFs) is uploaded to an S3 bucket (`S3_INPUT`).
 An EventBridge rule triggers a Lambda function upon new file uploads, ensuring an automated and asynchronous start to the processing pipeline.
 
-B. Data Classification:
-
+**B. Data Classification:**
 The triggered Lambda function (`LAMBDA_CLASSIFY`) classifies the uploaded files into their respective file types (e.g., image, video, 3D file, or PDF) and sends them to corresponding SQS queues for further processing.
-Metadata for each file is stored in a DynamoDB table (DYNAMODB_INPUT), providing a centralized repository for tracking.
+Metadata for each file is stored in a DynamoDB table (`DYNAMODB_INPUT`), providing a centralized repository for tracking.
 
 **C. Data Processing**:
-
-Separate SQS queues (SQS_DOCUMENT, SQS_3D_FILE, SQS_PICTURE, SQS_VIDEO) decouple processing tasks to allow for horizontal scaling.
-Dedicated Lambda functions process files based on type:
+- Separate SQS queues (`SQS_DOCUMENT`, `SQS_3D_FILE`, `SQS_PICTURE`, `SQS_VIDEO`) decouple processing tasks to allow for horizontal scaling.
+- Dedicated Lambda functions based on files type to classify the processing_option:
 Documents (PDFs): Utilize Amazon Textract for classification, text extraction, and semantic analysis.
 3D Files: Perform rendering, optimization, and simulations.
 Images: Use Amazon Rekognition for image recognition, resizing, and format conversion.
 Videos: Leverage AWS Elemental MediaConvert for transcoding, encoding, and caption generation.
 
 **D. Post-Processing and Export**:
-Processed files are uploaded back to another S3 bucket (S3_OUTPUT).
-A final Lambda function (LAMBDA_OUTPUT) sends events to EventBridge for post-processing notifications and updates metadata in DynamoDB (DYNAMODB_OUTPUT).
+Processed files are uploaded back to another S3 bucket (`S3_OUTPUT`).
+A final Lambda function (`LAMBDA_OUTPUT`) sends events to EventBridge for post-processing notifications and updates metadata in DynamoDB (`DYNAMODB_OUTPUT`)`.
 Files are distributed via CloudFront CDN, ensuring low-latency access for users.
 
-E. Monitoring and Alerting:
+**E. Monitoring and Alerting:**
 Turnaround Time (TAT) and performance metrics are monitored using Amazon CloudWatch. Metrics and logs are configured for all services, including Lambda, S3, SQS and processing stack.
 Alerts and notifications are sent via SNS when anomalies (e.g., delayed processing, high resource utilization) are detected.
+
 
 **Scalability**:
 - Serverless Services: Core components such as Lambda, SQS, and DynamoDB scale automatically with workload, handling peaks without manual intervention.
@@ -144,43 +143,97 @@ Alerts and notifications are sent via SNS when anomalies (e.g., delayed processi
 - High Availability: AWS services such as S3, DynamoDB, and CloudFront are inherently highly available and fault-tolerant.
 - Error Isolation: Each file type's processing is isolated, reducing the impact of failures in one type on others.
 
-**Maintenance-Less**:
+**Maintenance-Less:**
 - Managed Services: AWS services such as Lambda, S3, and DynamoDB, Textract, Elemental MediaConvert and Rekognition, require minimal operational overhead since infrastructure provisioning and scaling are handled by AWS.
 We also use EKS an Amazon managed Kubernetes cluster, even a Kubernetes expertise needed to run it, but it is much easier to managed than self-managed Kubernetes clusters.
 - Event-Driven Design: The architecture reacts to events, eliminating the need for manual orchestration.
 - Automation: Automation of monitoring, notifications, and error handling minimizes ongoing maintenance efforts.
 
-]*
 
 ---
 
 ### 2. **What monitoring strategies would you implement to ensure proactive system stabilization and effective auto-scaling?**
 
-*Answer: [Provide your answer here]*
+*Answer:*
+Here is my proposal for proactive monitoring and auto-scaling:
+**Monitoring Strategies**:
+
+**A. AWS CloudWatch for Metrics and Alarms:**
+- CloudWatch Metrics will be used to monitor critical system components such as AWS Lambda, SQS, S3, EKS, Rekogntion, MediaConvert, etc. Important metrics to monitor:
+    - Lambda: Duration, Invocations, Throttles, Errors, and Concurrent Executions.
+    - SQS: Message Queue Depth, Number of Messages Sent/Received.
+    - S3: Bucket size, number of objects, and data retrieval request metrics.
+    -  EKS Cluster: CPU and Memory utilization
+    - Rekognition: SuccessfulRequestCount and `ThrottledCount`, Reference: https://docs.aws.amazon.com/rekognition/latest/dg/rekognition-monitoring.html
+    - MediaConvert: Operation metrics, Queue metrics and Job metrics. Reference: https://docs.aws.amazon.com/mediaconvert/latest/ug/cloudwatch_metrics.html 
+    - Textract: SuccessfulRequestCount, ThrottledCount. Reference: https://docs.aws.amazon.com/textract/latest/dg/cloudwatch-metricsdim.html 
+    - CloudWatch Alarms will be set up for key thresholds (e.g., high memory usage, high message queue depth, or Lambda function errors) to trigger notifications via SNS (Simple Notification Service) to the infrastructure team for immediate attention. We can also integrate the alarm with communication platforms such as Slack.
+
+
+**B. AWS CloudWatch Logs:**
+- CloudWatch Logs will aggregate logs from Lambda, SQS, processing stack services (Textract, Rekognition, AWS Batch, EKS clusters, etc.) Logs will include application-specific details, such as errors, request processing times, or status updates for individual tasks.
+- Log Groups and Log Streams, logs will be organized based on service components, making it easier to analyze logs from different parts of the system.
+- Using CloudWatch Logs Insights, queries can be written to analyze logs and detect anomalies, such as slow processing times or high error rates.
+
+
+
+**C. Use 3rd Party Monitoring and Logging**
+We can also use third party monitoring for more comprehensive monitoring and logging if we find any limitation on AWS Cloudwatch for our use case. We can use 3rd party products that specialize in monitoring and logging, for example: Datadog, Prometheus and Grafana for monitoring. Splunk or Elasticsearch (ELK stack) for logging. 
+
+
+**D. Set-up Pagerduty for Incident Handling**
+We can define and set up priority for each alert, and route all alerts to Pagerduty to ease Incident handling management and escalation process.
+
+
+**Proactive System Stabilization and Autoscaling:**
+- Auto Scaling for EKS:
+        - Deploy Horizontal Pod Autoscaler (HPA) with custom metric from AWS SQS to autoscale pods.
+        - Install cluster autoscaler to autoscale EKS nodes.
+- CloudWatch Dashboards: Centralized dashboards will provide an overview of system health, including real-time metrics such as CPU, memory, and message queue length, allowing engineers to detect early signs of instability.
+- Alerts and Notifications: CloudWatch alarms tied to SNS will send alerts for any critical issues (e.g., high error rates or task failures), prompting the team to take action before the issue impacts users.
 
 ---
 
 ### 3. **What are the potential bottlenecks that might occur in the below architecture? How would you go about diagnosing and resolving these issues?**
 
-*Answer: [Provide your answer here]*
-
+*Answer:*
+I think the potential bottleneck would be:
+- Lambda function `LAMBDA_CLASSIFY`.
+- Lambda function `LAMBDA_OUTPUT`, this Lambda will wait for data from `SNS_NOTIF` and event data from `S3_OUTPUT`, the event from `S3_OUTPUT` probably will arrive later than because data from SNS, because event from S3 will only be sent after the upload process complete.
+ - 
 ---
 
 ### 4. **There is a big infrastructure; what’s the optimized cost plan?**
 
-*Answer: [Provide your answer here]*
+*Answer:*
+For cost optimization, I propose several strategy:
+- Monitor and Analyze cost:
+    - Use AWS Cost Explorer to identify storage trends and optimize resources.
+    - Set up AWS Budgets to monitor S3 spending.
+    - Enable AWS CloudWatch metrics to track object-level usage and optimize accordingly.
+    - Apply tagging to all AWS resources to improve cost monitoring and analysis.
+- Use spot instance for EKS cluster worker node.
+- Use different S3 storage class to optimize cost:
+    - S3 Standard: For frequently accessed data.
+    - S3 Intelligent-Tiering: Automatically moves data to the most cost-efficient storage tier based on usage patterns.
+    - S3 Standard Infrequent Access and S3 One Zone-IA: For data accessed less frequently but still needed quickly.
+    - S3 Glacier Flexible Retrieval, Glacier Instant Retrieval, or Glacier Deep Archive: For archival and long-term storage with varying retrieval speeds.
+    - Set up S3 Lifecycle Policies to automate moving objects to cheaper storage classes. For example:
+        - Move file to S3 Standard-IA after 30 days.
+        - Move file to S3 Glacier after 90 days.
+- To optimize cost for Lambda usage, here are some strategy that can be used:
+    - Optimize code execution time
+    - Use smaller package
+    - Use AWS Lambda Power Tuning (an open-source tool) to find the optimal balance between memory and execution time for your workload. Reference: https://github.com/alexcasalboni/aws-lambda-power-tuning
+    - Use compute saving plan for Lambda, reference: https://aws.amazon.com/savingsplans/compute-pricing/        
+
 
 ---
 
 ### 5. **Sample IaC Project**
-
-I have created a sample Infrastructure-as-Code (IaC) project to demonstrate my ability to meet the infrastructure requirements. The repository includes essential configurations and code snippets, focusing on scalability, reliability, and maintainability.
-
-#### **Repository Details:**
-- **Repository URL:** [Private GitHub repository link]
+I have created a sample Infrastructure-as-Code (IaC) project to demonstrate my ability to meet the infrastructure requirements. 
+- **Repository URL:** [https://github.com/tampubolon/data-pipeline](https://github.com/tampubolon/data-pipeline)]
 - **Invited Collaborators:** `@yota345` and `@tanvlt`
-
-Please note that the project demonstrates core concepts and skills rather than a complete implementation. The total time spent does not exceed two hours.
 
 ---
 
