@@ -100,10 +100,12 @@ This document outlines my approach and solutions for designing and implementing 
 
 ### 1. **What architecture is suitable for the requirement? How can it be scalable, reliable, and maintenance-less?**
 
-*Answer:
+*Answer:*
+
 **Architecture Overview:**
 I propsed an architecture with a serverless, event-driven, and highly scalable data pipeline. designed to handle 5TB of daily incoming data. Let we separates the data ingestion, classification, processing, and export stages. 
 Decouple the classification stage and processing stage with Amazon queue service (SQS), to manage high amount of incoming data by buffering incoming data and avoid overloading the system. The architecture leverages as much as possible AWS managed services to minimize operational overhead.
+
 
 **Key Features of the Architecture:**
 
@@ -199,8 +201,29 @@ We can define and set up priority for each alert, and route all alerts to Pagerd
 *Answer:*
 I think the potential bottleneck would be:
 - Lambda function `LAMBDA_CLASSIFY`.
-- Lambda function `LAMBDA_OUTPUT`, this Lambda will wait for data from `SNS_NOTIF` and event data from `S3_OUTPUT`, the event from `S3_OUTPUT` probably will arrive later than because data from SNS, because event from S3 will only be sent after the upload process complete.
- - 
+    - To diagnose the bottleneck in this Lambda function we need to enable CloudWatch log and metric:
+        - Invocation count
+        - Duration
+        - Error count
+        - Throttles
+        - Provisioned concurrency metrics.
+    - To resolve the bottlencek on Lambda `LAMBDA_CLASSIFY`:
+        - Increase concurrency limits for the AWS account.
+        - Create dedicated lambda function for each file type, so there would be 4 lambda functions. Create different event pattern filter for each Lambda function to trigger the funtion. So when an event from a picture file generated from `S3_INPUT`, and only event pattern filter of `LAMBDA_CLASSIFY`for picture file will capture the event and then trigger the Lambda function. Other Lambda function will not be triggered.
+        - Implement robust error handling and retry.
+        - Minimize deployment package size by removing unused libraries
+        - Add SQS before the `LAMBDA_CLASSIFY`
+
+- Lambda function `LAMBDA_OUTPUT`, this Lambda will wait for data from `SNS_NOTIF` and event data from `S3_OUTPUT`, the event from `S3_OUTPUT` probably will arrive later than because data from SNS, because event from S3 will only be sent after the upload process complete. 
+    - To diagnose the bottleneck in this Lambda function we use the same technique as for `LAMBDA_CLASSIFY`.
+    - To resolve the bottlencek on Lambda `S3_OUTPUT`:
+        - Create dedicated `SNS_NOTIF` for each each processing technology (service). To handle the event comes from `S3_OUTPUT`. We can use similiar technique applied to `LAMBDA_CLASSIFY`. We create dedicated Lambda funtion to each file types, so there will be four different Lambda Output: `LAMBDA_OUTPUT_DOCUMENT`, `LAMBDA_OUTPUT_3D_FILE`, `LAMBDA_OUTPUT_PICTURE`, and `LAMBDA_OUTPUT_VIDEO`. Setup event pattern filter as trigger for each Lambda function. So, for example when a video file uploaded to `S3_OUTPUT` only `LAMBDA_OUTPUT_VIDEO` will catch the event and process it. 
+        - Create dedicated `SNS_NOTIF` for each processing stack service, on forward the notification to the correct `LAMBDA_OUTPUT`.
+        - Increase concurrency limits for the AWS account.
+        - Implement robust error handling and retry.
+        - Minimize deployment package size by removing unused libraries.
+
+
 ---
 
 ### 4. **There is a big infrastructure; what’s the optimized cost plan?**
@@ -231,7 +254,7 @@ For cost optimization, I propose several strategy:
 ---
 
 ### 5. **Sample IaC Project**
-I have created a sample Infrastructure-as-Code (IaC) project to demonstrate my ability to meet the infrastructure requirements. 
+I have created a sample Infrastructure-as-Code (IaC) project to demonstrate my ability to meet the infrastructure requirements. I also setup Atlantis to show terraform plan and terraform apply result on the PR. PR example: https://github.com/tampubolon/data-pipeline/pull/3
 - **Repository URL:** [https://github.com/tampubolon/data-pipeline](https://github.com/tampubolon/data-pipeline)
 
 ---
