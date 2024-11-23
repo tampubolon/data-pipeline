@@ -89,13 +89,9 @@ My architecture can be also see here:
 - **AWS Batch & EKS Cluster**: Batch processing with Kubernetes running the workload.
 
 ---
+---
 
-## How It Works
-
-This pipeline ensures efficient handling of diverse file types, leveraging AWS's scalability and specialized tools for processing and storage. Users can seamlessly upload files, define processing requirements, and access results via CDN, direct download, or metadata queries.
-
-
-## Questions and Answers:
+# Questions and Answers:
 
 
 This document outlines my approach and solutions for designing and implementing scalable, reliable, and maintenance-less infrastructure for a data processing system handling **5TB/day of various file types**.
@@ -104,7 +100,57 @@ This document outlines my approach and solutions for designing and implementing 
 
 ### 1. **What architecture is suitable for the requirement? How can it be scalable, reliable, and maintenance-less?**
 
-*Answer: [Provide your answer here]*
+*Answer: [
+    **Architecture Overview:**
+I propsed an architecture with a serverless, event-driven, and highly scalable data pipeline. designed to handle 5TB of daily incoming data. Let we separates the data ingestion, classification, processing, and export stages. 
+Decouple the classification stage and processing stage with Amazon queue service (SQS), to manage high amount of incoming data. The architecture leverages as much as possible AWS managed services to minimize operational overhead.
+
+*Key Features of the Architecture:*
+A. Data Ingestion and Event Triggering:
+
+Incoming data (images, media files, 3D files, and PDFs) is uploaded to an S3 bucket (`S3_INPUT`).
+An EventBridge rule triggers a Lambda function upon new file uploads, ensuring an automated and asynchronous start to the processing pipeline.
+
+B. Data Classification:
+
+The triggered Lambda function (`LAMBDA_CLASSIFY`) classifies the uploaded files into their respective file types (e.g., image, video, 3D file, or PDF) and sends them to corresponding SQS queues for further processing.
+Metadata for each file is stored in a DynamoDB table (DYNAMODB_INPUT), providing a centralized repository for tracking.
+
+**C. Data Processing**:
+
+Separate SQS queues (SQS_DOCUMENT, SQS_3D_FILE, SQS_PICTURE, SQS_VIDEO) decouple processing tasks to allow for horizontal scaling.
+Dedicated Lambda functions process files based on type:
+Documents (PDFs): Utilize Amazon Textract for classification, text extraction, and semantic analysis.
+3D Files: Perform rendering, optimization, and simulations.
+Images: Use Amazon Rekognition for image recognition, resizing, and format conversion.
+Videos: Leverage AWS Elemental MediaConvert for transcoding, encoding, and caption generation.
+
+**D. Post-Processing and Export**:
+Processed files are uploaded back to another S3 bucket (S3_OUTPUT).
+A final Lambda function (LAMBDA_OUTPUT) sends events to EventBridge for post-processing notifications and updates metadata in DynamoDB (DYNAMODB_OUTPUT).
+Files are distributed via CloudFront CDN, ensuring low-latency access for users.
+
+E. Monitoring and Alerting:
+Turnaround Time (TAT) and performance metrics are monitored using Amazon CloudWatch. Metrics and logs are configured for all services, including Lambda, S3, SQS and processing stack.
+Alerts and notifications are sent via SNS when anomalies (e.g., delayed processing, high resource utilization) are detected.
+
+**Scalability**:
+- Serverless Services: Core components such as Lambda, SQS, and DynamoDB scale automatically with workload, handling peaks without manual intervention.
+- Decoupled Architecture: By using SQS queues, processing is decoupled, allowing horizontal scaling of workers for each file type.
+- CDN Integration: CloudFront ensures scalability for content delivery regardless of the number of users accessing processed files.
+
+**Reliability:**
+- Retry Mechanisms: SQS guarantees at-least-once delivery, and Lambda functions include automatic retries for transient failures.
+- High Availability: AWS services such as S3, DynamoDB, and CloudFront are inherently highly available and fault-tolerant.
+- Error Isolation: Each file type's processing is isolated, reducing the impact of failures in one type on others.
+
+**Maintenance-Less**:
+- Managed Services: AWS services such as Lambda, S3, and DynamoDB, Textract, Elemental MediaConvert and Rekognition, require minimal operational overhead since infrastructure provisioning and scaling are handled by AWS.
+We also use EKS an Amazon managed Kubernetes cluster, even a Kubernetes expertise needed to run it, but it is much easier to managed than self-managed Kubernetes clusters.
+- Event-Driven Design: The architecture reacts to events, eliminating the need for manual orchestration.
+- Automation: Automation of monitoring, notifications, and error handling minimizes ongoing maintenance efforts.
+
+]*
 
 ---
 
