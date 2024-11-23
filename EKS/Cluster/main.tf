@@ -1,6 +1,6 @@
 locals {
-  vpc_id         = "vpc-0ca2d1fea23bcd3a9"
-  public_subnets = ["subnet-0c0f72c6359ad6085", "subnet-087efb745876fa202", "subnet-0fe65694cdabca319"]
+  vpc_id         = "vpc-06c2d692905ec07f6"
+  public_subnets = ["subnet-0b8a378cecc552d4a", "subnet-0200fe4aba27bb4d6", "subnet-0509e3040079f4cd3"]
 
   default_tags = {
     Environment = "development"
