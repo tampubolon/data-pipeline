@@ -1,6 +1,6 @@
 locals {
-  vpc_id         = "vpc-06c2d692905ec07f6"
-  public_subnets = ["subnet-0b8a378cecc552d4a", "subnet-0200fe4aba27bb4d6", "subnet-0509e3040079f4cd3"]
+  vpc_id         = data.aws_vpc.eks_vpc.id
+  public_subnets = data.aws_subnets.public_subnets.ids
 
   default_tags = {
     Environment = "development"
