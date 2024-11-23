@@ -1,8 +1,8 @@
 resource "aws_s3_bucket" "input_bucket" {
-  bucket = "s3_input"
+  bucket = "s3-input"
 
   tags = {
-    name        = "s3_input"
+    name        = "s3-input"
     environment = "development"
     Owner       = "team-infrastructure"
     ManagedBy   = "terraform"
@@ -29,11 +29,11 @@ resource "aws_s3_bucket_lifecycle_configuration" "input_bucket_lifecycle" {
   bucket = aws_s3_bucket.input_bucket.id
 
   rule {
-    id      = "expire-old-data"
+    id     = "expire-old-data"
     status = "Enabled"
 
     transition {
-      days          = 30  # After 30 days, transition to Glacier storage
+      days          = 30 # After 30 days, transition to Glacier storage
       storage_class = "GLACIER"
     }
 
