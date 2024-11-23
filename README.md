@@ -158,6 +158,7 @@ We also use EKS an Amazon managed Kubernetes cluster, even a Kubernetes expertis
 
 *Answer:*
 Here is my proposal for proactive monitoring and auto-scaling:
+
 **Monitoring Strategies**:
 
 **A. AWS CloudWatch for Metrics and Alarms:**
@@ -179,11 +180,11 @@ Here is my proposal for proactive monitoring and auto-scaling:
 
 
 
-**C. Use 3rd Party Monitoring and Logging**
+**C. Use 3rd Party Monitoring and Logging:**
 We can also use third party monitoring for more comprehensive monitoring and logging if we find any limitation on AWS Cloudwatch for our use case. We can use 3rd party products that specialize in monitoring and logging, for example: Datadog, Prometheus and Grafana for monitoring. Splunk or Elasticsearch (ELK stack) for logging. 
 
 
-**D. Set-up Pagerduty for Incident Handling**
+**D. Set-up Pagerduty for Incident Handling:**
 We can define and set up priority for each alert, and route all alerts to Pagerduty to ease Incident handling management and escalation process.
 
 
