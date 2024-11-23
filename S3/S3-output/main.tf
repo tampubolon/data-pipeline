@@ -1,18 +1,18 @@
-resource "aws_s3_bucket" "input_bucket" {
-  bucket = "s3-input-martinustpb"
+resource "aws_s3_bucket" "output_bucket" {
+  bucket = "s3-output-martinustpb"
 
   tags = {
-    name        = "s3-input-martinustpb"
+    name        = "s3-output-martinustpb"
     environment = "development"
     Owner       = "team-infrastructure"
     ManagedBy   = "terraform"
-    TFProject   = "github.com/tampubolon/data-pipeline/s3/s3-input"
+    TFProject   = "github.com/tampubolon/data-pipeline/s3/s3-output"
     Attributes  = "s3-bucket"
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "input_bucket_block" {
-  bucket = aws_s3_bucket.input_bucket.id
+resource "aws_s3_bucket_public_access_block" "output_bucket_block" {
+  bucket = aws_s3_bucket.output_bucket.id
 
   block_public_acls       = true
   block_public_policy     = true
@@ -20,8 +20,8 @@ resource "aws_s3_bucket_public_access_block" "input_bucket_block" {
   restrict_public_buckets = true
 }
 
-resource "aws_s3_bucket_lifecycle_configuration" "input_bucket_lifecycle" {
-  bucket = aws_s3_bucket.input_bucket.id
+resource "aws_s3_bucket_lifecycle_configuration" "output_bucket_lifecycle" {
+  bucket = aws_s3_bucket.output_bucket.id
 
   rule {
     id     = "expire-old-data"
@@ -43,21 +43,21 @@ resource "aws_s3_bucket_lifecycle_configuration" "input_bucket_lifecycle" {
 }
 
 resource "aws_s3_object" "document_folder" {
-  bucket = aws_s3_bucket.input_bucket.id
+  bucket = aws_s3_bucket.output_bucket.id
   key    = "documents/"
 }
 
 resource "aws_s3_object" "picture_folder" {
-  bucket = aws_s3_bucket.input_bucket.id
+  bucket = aws_s3_bucket.output_bucket.id
   key    = "pictures/"
 }
 
 resource "aws_s3_object" "video_folder" {
-  bucket = aws_s3_bucket.input_bucket.id
+  bucket = aws_s3_bucket.output_bucket.id
   key    = "videos/"
 }
 
 resource "aws_s3_object" "file_3d_folder" {
-  bucket = aws_s3_bucket.input_bucket.id
+  bucket = aws_s3_bucket.output_bucket.id
   key    = "3d-files/"
 }
