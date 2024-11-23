@@ -1,8 +1,8 @@
 resource "aws_s3_bucket" "input_bucket" {
-  bucket = "s3-input"
+  bucket = "s3-input-martinustpb"
 
   tags = {
-    name        = "s3-input"
+    name        = "s3-input-martinustpb"
     environment = "development"
     Owner       = "team-infrastructure"
     ManagedBy   = "terraform"
