@@ -110,7 +110,7 @@ Decouple the classification stage and processing stage with Amazon queue service
 **Key Features of the Architecture:**
 
 **A. Data Ingestion and Event Triggering:**
-Incoming data (images, media files, 3D files, and PDFs) is uploaded to an S3 bucket (`S3_INPUT`).
+- Incoming data (images, media files, 3D files, and PDFs) is uploaded to an S3 bucket (`S3_INPUT`).
 An EventBridge rule triggers a Lambda function upon new file uploads, ensuring an automated and asynchronous start to the processing pipeline.
 
 **B. Data Classification:**
@@ -134,6 +134,8 @@ Files are distributed via CloudFront CDN, ensuring low-latency access for users.
 Turnaround Time (TAT) and performance metrics are monitored using Amazon CloudWatch. Metrics and logs are configured for all services, including Lambda, S3, SQS and processing stack.
 Alerts and notifications are sent via SNS when anomalies (e.g., delayed processing, high resource utilization) are detected.
 
+---
+**How this arhicteture achieve Scalability, Reliablity and Maintenance-Less:**
 
 **Scalability**:
 - Serverless Services: Core components such as Lambda, SQS, and DynamoDB scale automatically with workload, handling peaks without manual intervention.
@@ -157,6 +159,7 @@ We also use EKS an Amazon managed Kubernetes cluster, even a Kubernetes expertis
 ### 2. **What monitoring strategies would you implement to ensure proactive system stabilization and effective auto-scaling?**
 
 *Answer:*
+
 Here is my proposal for proactive monitoring and auto-scaling:
 
 **Monitoring Strategies**:
@@ -200,7 +203,8 @@ We can define and set up priority for each alert, and route all alerts to Pagerd
 ### 3. **What are the potential bottlenecks that might occur in the below architecture? How would you go about diagnosing and resolving these issues?**
 
 *Answer:*
-I think the potential bottleneck would be:
+
+I think there would be severel point that potential to be the bottleneck, such as:
 - Lambda function `LAMBDA_CLASSIFY`.
     - To diagnose the bottleneck in this Lambda function we need to enable CloudWatch log and metric:
         - Invocation count
@@ -230,6 +234,7 @@ I think the potential bottleneck would be:
 ### 4. **There is a big infrastructure; what’s the optimized cost plan?**
 
 *Answer:*
+
 For cost optimization, I propose several strategy:
 - Monitor and Analyze cost:
     - Use AWS Cost Explorer to identify storage trends and optimize resources.
@@ -255,7 +260,7 @@ For cost optimization, I propose several strategy:
 ---
 
 ### 5. **Sample IaC Project**
-I have created a sample Infrastructure-as-Code (IaC) project to demonstrate my ability to meet the infrastructure requirements. I also setup Atlantis to show terraform plan and terraform apply result on the PR. PR example: https://github.com/tampubolon/data-pipeline/pull/3
+I have created a sample Infrastructure-as-Code (IaC) project to demonstrate my ability to meet the infrastructure requirements. I also setup [Atlantis](https://www.runatlantis.io/) to show terraform plan and terraform apply result on the PR. PR example: https://github.com/tampubolon/data-pipeline/pull/3
 - **Repository URL:** [https://github.com/tampubolon/data-pipeline](https://github.com/tampubolon/data-pipeline)
 
 ---
