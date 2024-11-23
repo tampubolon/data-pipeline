@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "input_bucket" {
-  bucket = "S3_INPUT" 
+  bucket = "S3_INPUT"
   acl    = "private"
 
   tags = {
@@ -53,7 +53,7 @@ resource "aws_s3_bucket_object" "video_folder" {
   key    = "video/"
 }
 
-resource "aws_s3_bucket_object" "3d_file_folder" {
+resource "aws_s3_bucket_object" "file_3d_folder" {
   bucket = aws_s3_bucket.input_bucket.id
   key    = "3d-file/"
 }
