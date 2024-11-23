@@ -1,6 +1,5 @@
 resource "aws_s3_bucket" "input_bucket" {
   bucket = "S3_INPUT"
-  acl    = "private"
 
   tags = {
     name        = "S3_INPUT"
@@ -10,6 +9,11 @@ resource "aws_s3_bucket" "input_bucket" {
     TFProject   = "github.com/tampubolon/data-pipeline/s3/s3-input"
     Attributes  = "s3-bucket"
   }
+}
+
+resource "aws_s3_bucket_acl" "input_bucket_acl" {
+  bucket = aws_s3_bucket.input_bucket.id
+  acl    = "private"
 }
 
 resource "aws_s3_bucket_public_access_block" "input_bucket_block" {
@@ -26,34 +30,43 @@ resource "aws_s3_bucket_lifecycle_configuration" "input_bucket_lifecycle" {
 
   rule {
     id      = "expire-old-data"
-    enabled = true
+    status = "Enabled"
+
+    transition {
+      days          = 30  # After 30 days, transition to Glacier storage
+      storage_class = "GLACIER"
+    }
 
     expiration {
-      days = 90 # Adjust based on your data retention policy
+      days = 3660
     }
 
     filter {
-      prefix = "" # Apply this rule to all objects
+      prefix = ""
     }
   }
 }
 
-resource "aws_s3_bucket_object" "document_folder" {
+resource "aws_s3_object" "document_folder" {
   bucket = aws_s3_bucket.input_bucket.id
-  key    = "document/"
+  key    = "documents/"
+  acl    = "private"
 }
 
-resource "aws_s3_bucket_object" "picture_folder" {
+resource "aws_s3_object" "picture_folder" {
   bucket = aws_s3_bucket.input_bucket.id
-  key    = "picture/"
+  key    = "pictures/"
+  acl    = "private"
 }
 
-resource "aws_s3_bucket_object" "video_folder" {
+resource "aws_s3_object" "video_folder" {
   bucket = aws_s3_bucket.input_bucket.id
-  key    = "video/"
+  key    = "videos/"
+  acl    = "private"
 }
 
-resource "aws_s3_bucket_object" "file_3d_folder" {
+resource "aws_s3_object" "file_3d_folder" {
   bucket = aws_s3_bucket.input_bucket.id
-  key    = "3d-file/"
+  key    = "3d-files/"
+  acl    = "private"
 }
