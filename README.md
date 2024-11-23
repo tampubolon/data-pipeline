@@ -65,14 +65,14 @@ The architecture can be also see here:
      Files in `S3_OUTPUT` are copied to Amazon CloudFront (CDN) for global access.  
    - Step 9.B:  
      Metadata is sent to `DYNAMODB_OUTPUT`.
-     
+
 **10. User Access** 
-    - Step 10.A:  
-      Users can access processed files via CloudFront.  
-    - Step 10.B:  
-      Files can also be downloaded directly from `S3_OUTPUT`.  
-    - Step 10.C:  
-      Processed file metadata can be accessed from `DYNAMODB_OUTPUT`.
+   - Step 10.A:
+     Users can access processed files via CloudFront.        
+   - Step 10.B:
+     Files can also be downloaded directly from `S3_OUTPUT`.  
+   - Step 10.C:
+     Processed file metadata can be accessed from `DYNAMODB_OUTPUT`.
 
 ---
 
